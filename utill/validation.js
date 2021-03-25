@@ -30,3 +30,33 @@ module.exports.validateUserInput = (firstname, lastname, email, password, phonen
 		valid  : Object.keys(errors).length < 1
 	};
 };
+
+module.exports.validateLoginInput = (email, password) => {
+	const errors = {};
+
+	if (email.trim() === '') {
+		errors.email = 'Email must not be empty';
+	}
+
+	if (password === '') {
+		errors.password = 'Password must not be empty';
+	}
+
+	return {
+		errors,
+		valid  : Object.keys(errors).length < 1
+	};
+};
+
+module.exports.validateParkingSport = (parkingsportname) => {
+	const errors = {};
+
+	if (parkingsportname.trim() === '') {
+		errors.parkingsportname = 'Parkingsportname must not be empty';
+	}
+
+	return {
+		errors,
+		valid  : Object.keys(errors).length < 1
+	};
+};

@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../../model/User');
 const { UserInputError } = require('apollo-server');
 const { SECRET_KEY } = require('../../config');
-const { validateUserInput } = require('../../utill/validation');
+const { validateUserInput, validateLoginInput } = require('../../utill/validation');
 const jwt = require('jsonwebtoken');
 
 function generateToken (user) {
@@ -19,10 +19,14 @@ function generateToken (user) {
 
 module.exports = {
 	Query    : {
-		sayHi : () => 'Hello world'
+		async getUsers () {
+			const user = await User.find();
+			return user;
+		}
 	},
 
 	Mutation : {
+		//Create user (ADD FORM)
 		async createUser (_, { userInput: { firstname, lastname, email, password, phonenumber } }, context) {
 			const user = await User.findOne({ email });
 
@@ -58,6 +62,53 @@ module.exports = {
 				id    : res._id,
 				token
 			};
+		},
+		//LOGIN FORM
+		async login (_, { email, password }) {
+			const { errors, valid } = validateLoginInput(email, password);
+
+			if (!valid) {
+				throw new UserInputError('Errors', { errors });
+			}
+
+			const user = await User.findOne({ email });
+
+			if (!user) {
+				errors.general = 'User not found';
+				throw new UserInputError('User not found', { errors });
+			}
+
+			const match = await bcrypt.compare(password, user.password);
+			if (!match) {
+				errors.general = 'Wrong crendetials';
+				throw new UserInputError('Wrong crendetials', { errors });
+			}
+
+			const token = generateToken(user);
+
+			return {
+				...user._doc,
+				id    : user._id,
+				token
+			};
 		}
+
+		// async updateUser (_, { updateUserInput: { id, firstname, lastname, email, password, phonenumber } }, context) {
+		// 	const user = await User.findById(id);
+
+		// 	if (!user)
+		// 		throw new UserInputError('No user found', {
+		// 			user : 'Not avalible'
+		// 		});
+
+		// 	user = await User.findByIdAndUpdate(id, {
+		// 		firstname: firstname,
+		// 		lastname: lastname,
+		// 		email: email,
+		// 		password: password,
+		// 		phonenumber: phonenumber
+		// 	});
+		// 	return user;
+		// }
 	}
 };
