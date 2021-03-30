@@ -3,6 +3,7 @@ module.exports = model(
 	'ParkingSpots',
 	new Schema({
 		parkingsportname : String,
-		avalible         : Boolean
+		avalible         : Boolean,
+		cost             : String
 	})
 );

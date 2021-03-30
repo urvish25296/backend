@@ -24,6 +24,15 @@ module.exports = gql`
 		createdDate: String
 	}
 
+	type Cost {
+		id: ID!
+		amount: Int!
+	}
+
+	input CostInput {
+		amount: Int!
+	}
+
 	input UserInput {
 		firstname: String!
 		lastname: String!
@@ -41,28 +50,24 @@ module.exports = gql`
 		phonenumber: String!
 	}
 
-	type Charges {
-		id: ID!
-		cost: Int!
-	}
-
 	type Query {
 		# USER
 		getUsers: [User]
 		# PARKINGSPORTS
 		getParkingSports: [ParkingSpot]
 		getParkingSport(id: ID!): ParkingSpot!
+		getCosts: [Cost]
+		getCost(id: ID!): Cost!
 	}
 
 	type Mutation {
 		# USER
-
 		createUser(userInput: UserInput): User!
 		login(email: String!, password: String!): User!
 		#updateUser(updateUserInput: UpdateUserInput): User!
 
 		# PARKINGSPORTS
 		createParkingSport(parkingsportname: String!, avalible: Boolean!): ParkingSpot!
-		createCost(cost: Int!): Charges!
+		createCost(costInput: CostInput): Cost!
 	}
 `;
