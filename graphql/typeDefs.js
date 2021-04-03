@@ -16,17 +16,16 @@ module.exports = gql`
 		avalible: Boolean!
 	}
 
-	type Booking {
-		id: ID!
-		bookingDate: String!
-		startingtime: Int!
-		endingtime: Int!
-		createdDate: String
-	}
-
 	type Cost {
 		id: ID!
 		amount: Int!
+	}
+
+	type Booking {
+		id: ID!
+		parkingSport: String!
+		bookingDate: String!
+		numOfHours: Int!
 	}
 
 	input CostInput {
@@ -60,6 +59,12 @@ module.exports = gql`
 		getCost(id: ID!): Cost!
 	}
 
+	input BookingInput {
+		parkingSport: String!
+		bookingDate: String!
+		numOfHours: Int!
+	}
+
 	type Mutation {
 		# USER
 		createUser(userInput: UserInput): User!
@@ -69,5 +74,6 @@ module.exports = gql`
 		# PARKINGSPORTS
 		createParkingSport(parkingsportname: String!, avalible: Boolean!): ParkingSpot!
 		createCost(costInput: CostInput): Cost!
+		createBooking(bookingInput: BookingInput): Booking!
 	}
 `;
