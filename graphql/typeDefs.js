@@ -57,6 +57,8 @@ module.exports = gql`
 		getParkingSport(id: ID!): ParkingSpot!
 		getCosts: [Cost]
 		getCost(id: ID!): Cost!
+		#booking
+		getBookings: [Booking]
 	}
 
 	input BookingInput {
