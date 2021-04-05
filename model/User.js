@@ -7,6 +7,7 @@ module.exports = model(
 		email       : String,
 		password    : String,
 		phonenumber : String,
-		isAdmin     : Boolean
+		isAdmin     : Boolean,
+		status      : Boolean
 	})
 );

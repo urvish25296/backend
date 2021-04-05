@@ -27,11 +27,24 @@ module.exports = {
 
 	Mutation : {
 		//Create user (ADD FORM)
-		async createUser (_, { userInput: { firstname, lastname, email, password, phonenumber, isAdmin } }, context) {
+
+		async createUser (
+			_,
+			{ userInput: { firstname, lastname, email, password, phonenumber, isAdmin, status } },
+			context
+		) {
 			const user = await User.findOne({ email });
 
 			//VALIDATION
-			const { valid, errors } = validateUserInput(firstname, lastname, email, password, phonenumber, isAdmin);
+			const { valid, errors } = validateUserInput(
+				firstname,
+				lastname,
+				email,
+				password,
+				phonenumber,
+				isAdmin,
+				status
+			);
 
 			if (!valid) {
 				throw new UserInputError('Errors', { errors });
@@ -52,7 +65,8 @@ module.exports = {
 				email,
 				password,
 				phonenumber,
-				isAdmin
+				isAdmin,
+				status
 			});
 
 			//SAVE USER INTO DATABASE
@@ -113,6 +127,21 @@ module.exports = {
 				id    : res._id,
 				token
 			};
+		},
+
+		async changeUserStatus (_, { id }) {
+			const userOne = await User.findById(id);
+
+			const status =
+				userOne.status ? False :
+				true;
+
+			const res = await User.findOneAndUpdate(
+				{ _id: id },
+				{
+					status : status
+				}
+			);
 		}
 	}
 };

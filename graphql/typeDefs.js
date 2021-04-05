@@ -9,6 +9,7 @@ module.exports = gql`
 		password: String!
 		phonenumber: String!
 		isAdmin: Boolean!
+		status: Boolean!
 	}
 
 	type ParkingSpot {
@@ -40,6 +41,7 @@ module.exports = gql`
 		password: String!
 		phonenumber: String!
 		isAdmin: Boolean!
+		status: Boolean!
 	}
 
 	input UpdateUserInput {
@@ -74,6 +76,7 @@ module.exports = gql`
 		createUser(userInput: UserInput): User!
 		login(email: String!, password: String!): User!
 		updateUser(updateUserInput: UpdateUserInput): User!
+		changeUserStatus(id: ID!): User!
 		# PARKINGSPORTS
 		createParkingSport(parkingsportname: String!, avalible: Boolean!): ParkingSpot!
 		createCost(costInput: CostInput): Cost!
