@@ -73,8 +73,7 @@ module.exports = gql`
 		# USER
 		createUser(userInput: UserInput): User!
 		login(email: String!, password: String!): User!
-		#updateUser(updateUserInput: UpdateUserInput): User!
-
+		updateUser(updateUserInput: UpdateUserInput): User!
 		# PARKINGSPORTS
 		createParkingSport(parkingsportname: String!, avalible: Boolean!): ParkingSpot!
 		createCost(costInput: CostInput): Cost!

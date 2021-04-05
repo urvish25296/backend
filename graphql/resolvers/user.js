@@ -92,24 +92,27 @@ module.exports = {
 				id    : user._id,
 				token
 			};
+		},
+
+		async updateUser (_, { updateUserInput: { id, firstname, lastname, email, password, phonenumber } }, context) {
+			const res = await User.findOneAndUpdate(
+				{ _id: id },
+				{
+					firstname   : firstname,
+					lastname    : lastname,
+					email       : email,
+					password    : password,
+					phonenumber : phonenumber
+				}
+			);
+
+			const token = generateToken(res);
+
+			return {
+				...res._doc,
+				id    : res._id,
+				token
+			};
 		}
-
-		// async updateUser (_, { updateUserInput: { id, firstname, lastname, email, password, phonenumber } }, context) {
-		// 	const user = await User.findById(id);
-
-		// 	if (!user)
-		// 		throw new UserInputError('No user found', {
-		// 			user : 'Not avalible'
-		// 		});
-
-		// 	user = await User.findByIdAndUpdate(id, {
-		// 		firstname: firstname,
-		// 		lastname: lastname,
-		// 		email: email,
-		// 		password: password,
-		// 		phonenumber: phonenumber
-		// 	});
-		// 	return user;
-		// }
 	}
 };
