@@ -27,11 +27,11 @@ module.exports = {
 
 	Mutation : {
 		//Create user (ADD FORM)
-		async createUser (_, { userInput: { firstname, lastname, email, password, phonenumber } }, context) {
+		async createUser (_, { userInput: { firstname, lastname, email, password, phonenumber, isAdmin } }, context) {
 			const user = await User.findOne({ email });
 
 			//VALIDATION
-			const { valid, errors } = validateUserInput(firstname, lastname, email, password, phonenumber);
+			const { valid, errors } = validateUserInput(firstname, lastname, email, password, phonenumber, isAdmin);
 
 			if (!valid) {
 				throw new UserInputError('Errors', { errors });
@@ -51,7 +51,8 @@ module.exports = {
 				lastname,
 				email,
 				password,
-				phonenumber
+				phonenumber,
+				isAdmin
 			});
 
 			//SAVE USER INTO DATABASE

@@ -8,6 +8,7 @@ module.exports = gql`
 		email: String!
 		password: String!
 		phonenumber: String!
+		isAdmin: Boolean!
 	}
 
 	type ParkingSpot {
@@ -38,6 +39,7 @@ module.exports = gql`
 		email: String!
 		password: String!
 		phonenumber: String!
+		isAdmin: Boolean!
 	}
 
 	input UpdateUserInput {
