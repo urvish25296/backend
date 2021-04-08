@@ -1,78 +1,141 @@
-const bcrypt = require('bcryptjs');
-const { UserInputError } = require('apollo-server');
-const { SECRET_KEY } = require('../../config');
-const { validateParkingSport } = require('../../utill/validation');
-const jwt = require('jsonwebtoken');
-const ParkingSpots = require('../../model/ParkingSpots');
+const bcrypt = require("bcryptjs");
+const { UserInputError } = require("apollo-server");
+const { SECRET_KEY } = require("../../config");
+const { validateParkingSpot } = require("../../utill/validation");
+const jwt = require("jsonwebtoken");
+const ParkingSpot = require("../../model/ParkingSpot");
 
-function generateToken (user) {
-	return jwt.sign(
-		{
-			id       : user.id,
-			email    : user.email,
-			username : user.username
-		},
-		SECRET_KEY,
-		{ expiresIn: '1h' }
-	);
+function generateToken(user) {
+  return jwt.sign(
+    {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    },
+    SECRET_KEY,
+    { expiresIn: "1h" }
+  );
 }
 
 module.exports = {
-	Query    : {
-		async getParkingSports () {
-			const parkingspots = await ParkingSpots.find();
-			return parkingspots;
-		},
+  Query: {
+    async getParkingSpots(
+      _,
+      { parkingSpotInput: { id, name, available, cost, status } }
+    ) {
+      const detail = {
+        _id: id,
+        name,
+        available,
+        cost,
+        status,
+      };
+      Object.keys(detail).forEach((key) =>
+        detail[key] === undefined ? delete detail[key] : {}
+      );
 
-		async getParkingSport (_, { id }) {
-			const parkinggsport = await ParkingSpots.findById(id);
-			return parkinggsport;
-		}
-	},
+      const parkingspots = await ParkingSpot.find(detail);
+      return {
+        obj: parkingspots,
+        message: "Fetched ParkingSpots.",
+        error: false,
+      };
+    },
+  },
 
-	Mutation : {
-		async createParkingSport (_, { parkingsportname, avalible, cost, status }) {
-			const parkingSport = await ParkingSpots.findOne({ parkingsportname });
-			const { valid, errors } = validateParkingSport(parkingsportname);
+  Mutation: {
+    async createParkingSpot(
+      _,
+      { parkingSpotInput: { id, name, available, cost, status } }
+    ) {
+      const detail = {
+        _id: id,
+        name,
+        available,
+        cost,
+        status,
+      };
+      Object.keys(detail).forEach((key) =>
+        detail[key] === undefined ? delete detail[key] : {}
+      );
 
-			if (!valid) {
-				throw new UserInputError('Errors', { errors });
-			}
+      try {
+        const parkingSpot = await ParkingSpot.findOne({ name });
+        if (parkingSpot)
+          throw new UserInputError("Parking spot with same name");
+        const { valid, errors } = validateParkingSpot(name);
+        if (!valid) throw new UserInputError("Invalid name", { errors });
+      } catch (ex) {
+        return {
+          obj: [],
+          message: "An error occurred.",
+          error: true,
+        };
+      }
 
-			//CHECK parkingSport IS EXIST OR NOT
-			if (parkingSport)
-				throw new UserInputError('This parkingSport name is already exist', {
-					parkingsportname : 'This parkingSport name is already exist'
-				});
+      const parkingspot = await new ParkingSpot(detail).save();
 
-			const newParkingSport = new ParkingSpots({ parkingsportname, avalible, cost, status });
+      return {
+        obj: [parkingspot],
+        message: "Parking spot created successfully.",
+        error: false,
+      };
+    },
 
-			const res = await newParkingSport.save();
-			const token = generateToken(res);
-			return {
-				...res._doc,
-				id    : res._id,
-				token
-			};
-		},
-		async changeParkingSpotStatus (_, { id }) {
-			const userOne = await ParkingSpots.findById(id);
-			const status =
-				userOne.status ? False :
-				true;
+    async updateParkingSpot(
+      _,
+      { parkingSpotInput: { id, name, available, cost, status } }
+    ) {
+      const detail = {
+        _id: id,
+        name,
+        available,
+        cost,
+        status,
+      };
+      Object.keys(detail).forEach((key) =>
+        detail[key] === undefined ? delete detail[key] : {}
+      );
 
-			const res = await User.findOneAndUpdate(
-				{ _id: id },
-				{
-					status : status
-				}
-			);
+      const parkingspot = await ParkingSpot.findOneAndUpdate(
+        { _id: id },
+        detail
+      );
 
-			return {
-				...res._doc,
-				id    : res._id,
-				token
-			};
-		}
-	}
+      if (!parkingspot) {
+        return {
+          obj: [],
+          message: "ParkingSpot could not be updated.",
+          error: true,
+        };
+      }
+
+      return {
+        obj: [parkingspot],
+        message: "ParkingSpot updated.",
+        error: false,
+      };
+    },
+
+    async deleteParkingSpot(
+      _,
+      { parkingSpotInput: { id, name, available, cost, status } }
+    ) {
+      const parkingspot = await ParkingSpot.deleteOne({ _id: id });
+
+      if (parkingspot.deletedCount < 1) {
+        return {
+          obj: [],
+          message: "ParkingSpot could not be deleted.",
+          error: true,
+        };
+      }
+
+      return {
+        obj: [],
+        message: "ParkingSpot deleted.",
+        error: false,
+      };
+    },
+  },
 };
