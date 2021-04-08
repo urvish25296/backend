@@ -4,6 +4,7 @@ module.exports = model(
 	new Schema({
 		parkingsportname : String,
 		avalible         : Boolean,
-		cost             : String
+		cost             : String,
+		status           : Boolean
 	})
 );

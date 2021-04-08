@@ -142,6 +142,12 @@ module.exports = {
 					status : status
 				}
 			);
+
+			return {
+				...res._doc,
+				id    : res._id,
+				token
+			};
 		}
 	}
 };

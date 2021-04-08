@@ -31,7 +31,7 @@ module.exports = {
 	},
 
 	Mutation : {
-		async createParkingSport (_, { parkingsportname, avalible }) {
+		async createParkingSport (_, { parkingsportname, avalible, cost, status }) {
 			const parkingSport = await ParkingSpots.findOne({ parkingsportname });
 			const { valid, errors } = validateParkingSport(parkingsportname);
 
@@ -45,10 +45,29 @@ module.exports = {
 					parkingsportname : 'This parkingSport name is already exist'
 				});
 
-			const newParkingSport = new ParkingSpots({ parkingsportname, avalible });
+			const newParkingSport = new ParkingSpots({ parkingsportname, avalible, cost, status });
 
 			const res = await newParkingSport.save();
 			const token = generateToken(res);
+			return {
+				...res._doc,
+				id    : res._id,
+				token
+			};
+		},
+		async changeParkingSpotStatus (_, { id }) {
+			const userOne = await ParkingSpots.findById(id);
+			const status =
+				userOne.status ? False :
+				true;
+
+			const res = await User.findOneAndUpdate(
+				{ _id: id },
+				{
+					status : status
+				}
+			);
+
 			return {
 				...res._doc,
 				id    : res._id,

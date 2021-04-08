@@ -26,11 +26,19 @@ module.exports = {
 	},
 
 	Mutation : {
-		async createBooking (_, { bookingInput: { parkingSport, bookingDate, numOfHours } }) {
+		async createBooking (_, { bookingInput: { userid, parkingSport, bookingDate, numOfHours, total, isPaid } }) {
+			ParkingSpots.findById(parkingSport).then((obj) => {
+				console.log('ps');
+				console.log(obj);
+			});
+
 			const newBooking = new Booking({
+				userid,
 				parkingSport,
 				bookingDate,
-				numOfHours
+				numOfHours,
+				total,
+				isPaid
 			});
 
 			ParkingSpots.findOneAndUpdate({ _id: parkingSport }, { avalible: false }).then((objs) => {
