@@ -21,7 +21,8 @@ module.exports = {
   Query: {
     async getParkingSpots(
       _,
-      { parkingSpotInput: { id, name, available, cost, status } }
+      { parkingSpotInput: { id, name, available, cost, status } },
+      context
     ) {
       const detail = {
         _id: id,
@@ -33,6 +34,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to list Parking Spots.",
+          error: true,
+        };
 
       const parkingspots = await ParkingSpot.find(detail);
       return {
@@ -46,7 +54,8 @@ module.exports = {
   Mutation: {
     async createParkingSpot(
       _,
-      { parkingSpotInput: { id, name, available, cost, status } }
+      { parkingSpotInput: { id, name, available, cost, status } },
+      context
     ) {
       const detail = {
         _id: id,
@@ -58,6 +67,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to create Parking Spots.",
+          error: true,
+        };
 
       try {
         const parkingSpot = await ParkingSpot.findOne({ name });
@@ -84,7 +100,8 @@ module.exports = {
 
     async updateParkingSpot(
       _,
-      { parkingSpotInput: { id, name, available, cost, status } }
+      { parkingSpotInput: { id, name, available, cost, status } },
+      context
     ) {
       const detail = {
         _id: id,
@@ -96,6 +113,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to update Parking Spots.",
+          error: true,
+        };
 
       const parkingspot = await ParkingSpot.findOneAndUpdate(
         { _id: id },
@@ -119,8 +143,16 @@ module.exports = {
 
     async deleteParkingSpot(
       _,
-      { parkingSpotInput: { id, name, available, cost, status } }
+      { parkingSpotInput: { id, name, available, cost, status } },
+      context
     ) {
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to delete Parking Spots.",
+          error: true,
+        };
+
       const parkingspot = await ParkingSpot.deleteOne({ _id: id });
 
       if (parkingspot.deletedCount < 1) {

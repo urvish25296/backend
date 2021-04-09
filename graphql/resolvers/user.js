@@ -8,18 +8,6 @@ const {
 } = require("../../utill/validation");
 const jwt = require("jsonwebtoken");
 
-function generateToken(user) {
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-    },
-    SECRET_KEY,
-    { expiresIn: "1h" }
-  );
-}
-
 module.exports = {
   Query: {
     async getUsers(
@@ -35,7 +23,8 @@ module.exports = {
           is_admin,
           status,
         },
-      }
+      },
+      context
     ) {
       const detail = {
         _id: id,
@@ -51,49 +40,18 @@ module.exports = {
         detail[key] === undefined ? delete detail[key] : {}
       );
 
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to list Users.",
+          error: true,
+        };
+
       const users = await User.find(detail);
       return {
         obj: users,
         message: "Fetched users",
         error: false,
-        token: "",
-      };
-    },
-
-    async getToken(_, { email, password }) {
-      try {
-        const { errors, valid } = validateLoginInput(email, password);
-
-        if (!valid) {
-          throw new UserInputError("Invalid Input", { errors });
-        }
-
-        const user = await User.findOne({ email });
-
-        if (!user) {
-          errors.general = "User not found";
-          throw new UserInputError("User not found", { errors });
-        }
-
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
-          errors.general = "Wrong crendetials";
-          throw new UserInputError("Wrong crendetials", { errors });
-        }
-      } catch (ex) {
-        return {
-          message: "Invalid username or password.", // generic message for safety
-          error: true,
-        };
-      }
-
-      const token = generateToken(user);
-
-      return {
-        user,
-        message: "Token generated.",
-        error: false,
-        token,
       };
     },
   },
@@ -111,7 +69,8 @@ module.exports = {
           is_admin,
           status,
         },
-      }
+      },
+      context
     ) {
       password = await bcrypt.hash(password, 12);
       const detail = {
@@ -126,6 +85,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to create Users.",
+          error: true,
+        };
 
       try {
         const user = await User.findOne({ email });
@@ -174,8 +140,10 @@ module.exports = {
           is_admin,
           status,
         },
-      }
+      },
+      context
     ) {
+      if (password == "") password = undefined;
       if (password) password = await bcrypt.hash(password, 12);
       const detail = {
         first_name,
@@ -189,6 +157,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to update Users.",
+          error: true,
+        };
 
       const user = await User.findOneAndUpdate({ _id: id }, detail);
 
@@ -205,6 +180,89 @@ module.exports = {
         message: "User updated.",
         error: false,
         token: "",
+      };
+    },
+
+    async deleteUser(
+      _,
+      {
+        userInput: {
+          id,
+          first_name,
+          last_name,
+          email,
+          password,
+          phone_number,
+          is_admin,
+          status,
+        },
+      },
+      context
+    ) {
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to delete Users.",
+          error: true,
+        };
+
+      const user = await User.deleteOne({ _id: id });
+
+      if (user.deletedCount < 1) {
+        return {
+          obj: [],
+          message: "User could not be deleted.",
+          error: true,
+        };
+      }
+
+      return {
+        obj: [],
+        message: "User deleted.",
+        error: false,
+      };
+    },
+
+    async getToken(_, { email, password }) {
+      try {
+        const { errors, valid } = validateLoginInput(email, password);
+
+        if (!valid) {
+          throw new UserInputError("Invalid Input", { errors });
+        }
+
+        var user = await User.findOne({ email });
+
+        if (!user) {
+          errors.general = "User not found";
+          throw new UserInputError("User not found", { errors });
+        }
+
+        const match = await bcrypt.compare(password, user.password);
+        if (!match) {
+          errors.general = "Wrong crendetials";
+          throw new UserInputError("Wrong crendetials", { errors });
+        }
+      } catch (ex) {
+        return {
+          message: "Invalid username or password.", // generic message for safety
+          error: true,
+        };
+      }
+
+      const token = jwt.sign(
+        {
+          id: user.id,
+        },
+        SECRET_KEY,
+        { expiresIn: 86400 }
+      );
+
+      return {
+        user,
+        message: "Token generated.",
+        error: false,
+        token,
       };
     },
   },

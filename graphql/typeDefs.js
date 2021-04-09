@@ -43,7 +43,6 @@ module.exports = gql`
     obj: [User]
     message: String
     error: Boolean
-    token: String
   }
 
   type ParkingSpotResponse {
@@ -60,7 +59,7 @@ module.exports = gql`
 
   type TokenResponse {
     user: User
-    token: String
+    token: String!
     message: String!
     error: Boolean!
   }
@@ -101,7 +100,7 @@ module.exports = gql`
     status: Boolean = false
   }
 
-  input UpdateUserInput {
+  input UpdateDeleteUserInput {
     id: ID!
     first_name: String
     last_name: String
@@ -195,25 +194,25 @@ module.exports = gql`
   # Query/Mutation
 
   type Query {
-    # User Queries
+    ## User Queries
     getUsers(userInput: GetUserInput): UserResponse
-    getToken(email: String!, password: String!): TokenResponse
 
-    # ParkingSpot Queries
+    ## ParkingSpot Queries
     getParkingSpots(parkingSpotInput: GetParkingSpotInput): ParkingSpotResponse
 
-    # Cost Queries
+    ## Cost Queries
     getCosts: [Cost]
 
-    # Bookings Queries
+    ## Bookings Queries
     getBookings(bookingInput: GetBookingInput): BookingResponse
   }
 
   type Mutation {
     ## User Mutations
     createUser(userInput: CreateUserInput): UserResponse
-    updateUser(userInput: UpdateUserInput): UserResponse
-    # login(email: String!, password: String!): User
+    updateUser(userInput: UpdateDeleteUserInput): UserResponse
+    deleteUser(userInput: UpdateDeleteUserInput): UserResponse
+    getToken(email: String!, password: String!): TokenResponse
 
     ## ParkingSpot Mutations
     createParkingSpot(

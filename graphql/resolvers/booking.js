@@ -33,7 +33,8 @@ module.exports = {
           total,
           is_paid,
         },
-      }
+      },
+      context
     ) {
       const detail = {
         _id: id,
@@ -47,6 +48,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to list Bookings.",
+          error: true,
+        };
 
       const bookings = await Booking.find(detail).populate([
         "user",
@@ -74,7 +82,8 @@ module.exports = {
           total,
           is_paid,
         },
-      }
+      },
+      context
     ) {
       const detail = {
         _id: id,
@@ -88,6 +97,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to create Bookings.",
+          error: true,
+        };
 
       // validation is needed to see if there is another with the same parking spot
 
@@ -121,7 +137,8 @@ module.exports = {
           total,
           is_paid,
         },
-      }
+      },
+      context
     ) {
       const detail = {
         _id: id,
@@ -135,6 +152,13 @@ module.exports = {
       Object.keys(detail).forEach((key) =>
         detail[key] === undefined ? delete detail[key] : {}
       );
+
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to update Bookings.",
+          error: true,
+        };
 
       // validation is needed to see if there is another with the same parking spot
 
@@ -182,8 +206,16 @@ module.exports = {
           total,
           is_paid,
         },
-      }
+      },
+      context
     ) {
+      if (!context.user || !context.user.is_admin)
+        return {
+          obj: [],
+          message: "Unathorized to delete Bookings.",
+          error: true,
+        };
+
       const booking = await Booking.findOne({ _id: id });
       await ParkingSpot.findOneAndUpdate(
         { _id: booking.parkingspot },
