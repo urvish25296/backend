@@ -35,7 +35,7 @@ module.exports = {
         detail[key] === undefined ? delete detail[key] : {}
       );
 
-      if (!context.user || !context.user.is_admin)
+      if (!context.user)
         return {
           obj: [],
           message: "Unathorized to list Parking Spots.",

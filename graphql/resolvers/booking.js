@@ -49,12 +49,25 @@ module.exports = {
         detail[key] === undefined ? delete detail[key] : {}
       );
 
-      if (!context.user || !context.user.is_admin)
+      if (!context.user)
         return {
           obj: [],
           message: "Unathorized to list Bookings.",
           error: true,
         };
+
+      if (!context.user.is_admin) {
+        const bookings = await Booking.find({
+          ...detail,
+          user: context.user.id,
+        }).populate(["user", "parkingspot"]);
+
+        return {
+          obj: bookings,
+          message: "Fetched Bookings",
+          error: false,
+        };
+      }
 
       const bookings = await Booking.find(detail).populate([
         "user",
@@ -98,7 +111,7 @@ module.exports = {
         detail[key] === undefined ? delete detail[key] : {}
       );
 
-      if (!context.user || !context.user.is_admin)
+      if (!context.user)
         return {
           obj: [],
           message: "Unathorized to create Bookings.",
@@ -107,15 +120,24 @@ module.exports = {
 
       // validation is needed to see if there is another with the same parking spot
 
-      const _booking = await new Booking(detail).save();
+      if (!context.user.is_admin) {
+        var _booking = await new Booking({
+          ...detail,
+          user: context.user.id, // make sure its the current user
+        }).save();
+      } else {
+        var _booking = await new Booking(detail).save();
+      }
+
+      // save() returns an object without populate option, therefore I need to search again
       const booking = await Booking.findById(_booking.id).populate([
         "user",
         "parkingspot",
       ]);
 
       await ParkingSpot.findOneAndUpdate(
-        { _id: _booking.parkingspot },
-        { avalible: false }
+        { _id: booking.parkingspot },
+        { available: false }
       );
 
       return {
@@ -153,19 +175,29 @@ module.exports = {
         detail[key] === undefined ? delete detail[key] : {}
       );
 
-      if (!context.user || !context.user.is_admin)
+      if (!context.user)
         return {
           obj: [],
           message: "Unathorized to update Bookings.",
           error: true,
         };
 
-      // validation is needed to see if there is another with the same parking spot
+      if (!context.user.is_admin) {
+        var booking = await Booking.findOneAndUpdate(
+          { _id: id, user: context.user.id },
+          {
+            ...detail,
+            user: context.user.id,
+          }
+        ).populate(["user", "parkingspot"]);
+      } else {
+        var booking = await Booking.findOneAndUpdate(
+          { _id: id },
+          detail
+        ).populate(["user", "parkingspot"]);
+      }
 
-      const booking = await Booking.findOneAndUpdate(
-        { _id: id },
-        detail
-      ).populate(["user", "parkingspot"]);
+      // validation is needed to see if there is another with the same parking spot
 
       if (!booking) {
         return {
@@ -209,32 +241,45 @@ module.exports = {
       },
       context
     ) {
-      if (!context.user || !context.user.is_admin)
+      if (!context.user)
         return {
           obj: [],
           message: "Unathorized to delete Bookings.",
           error: true,
         };
 
-      const booking = await Booking.findOne({ _id: id });
-      await ParkingSpot.findOneAndUpdate(
-        { _id: booking.parkingspot },
-        { avalible: true }
-      );
+      if (!context.user.is_admin) {
+        var booking = await Booking.findOne({ _id: id, user: context.user.id });
+      } else {
+        var booking = await Booking.findOne({ _id: id });
+      }
 
-      await Booking.deleteOne({ _id: id });
-
-      if (booking.deletedCount < 1) {
+      if (!booking) {
         return {
           obj: [],
-          message: "ParkingSpot could not be deleted.",
+          message: "Booking could not be deleted.",
           error: true,
         };
       }
 
+      const { deletedCount } = await Booking.deleteOne({ _id: id });
+
+      if (!deletedCount) {
+        return {
+          obj: [],
+          message: "Booking could not be deleted.",
+          error: true,
+        };
+      }
+
+      await ParkingSpot.findOneAndUpdate(
+        { _id: booking.parkingspot },
+        { available: true }
+      );
+
       return {
         obj: [],
-        message: "ParkingSpot deleted.",
+        message: "Booking deleted.",
         error: false,
       };
     },
